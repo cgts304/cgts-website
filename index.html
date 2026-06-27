@@ -23,7 +23,6 @@
 
     <main class="container">
 
-        <!-- DASHBOARD -->
         <section id="main-dashboard" class="view-section active">
             <div class="hero-text">
                 <h1>CGTS ऑनलाइन टेस्ट सीरीज़</h1>
@@ -53,7 +52,6 @@
             </div>
         </section>
 
-        <!-- LOGIN / REGISTRATION -->
         <section id="login-page" class="view-section">
             <div class="auth-box">
                 <div class="auth-tabs">
@@ -89,7 +87,6 @@
             </div>
         </section>
 
-        <!-- COURSE LISTING -->
         <section id="listing-view" class="view-section">
             <div class="back-nav">
                 <button onclick="goBackFromListing()"><i class="fa-solid fa-arrow-left"></i> पीछे जाएं</button>
@@ -102,7 +99,6 @@
             <div id="listing-grid" class="grid-3"></div>
         </section>
 
-        <!-- QUIZ ENGINE -->
         <section id="quiz-view" class="view-section">
             <div class="quiz-box-container">
                 <div class="quiz-top-bar">
@@ -129,7 +125,6 @@
             </div>
         </section>
 
-        <!-- RESULT -->
         <section id="result-view" class="view-section">
             <div class="result-summary-card">
                 <h2>टेस्ट परिणाम</h2>
@@ -147,19 +142,19 @@
             </div>
         </section>
 
-        <!-- ADMIN PANEL -->
         <section id="admin-dashboard" class="view-section">
             <div class="admin-top">
-                <h2>एडमिन पैनल</h2>
+                <h2>CGTS एडमिन कंसोल</h2>
                 <button onclick="logout()" class="btn-text-red">लॉगआऊट</button>
             </div>
             <div class="admin-tab-nav">
                 <button id="admin-tab-btn-users" onclick="switchAdminTab('users')" class="admin-tab-item active">छात्र मैनेजमेंट</button>
-                <button id="admin-tab-btn-content" onclick="switchAdminTab('content')" class="admin-tab-item">कोर्स / JSON</button>
+                <button id="admin-tab-btn-content" onclick="switchAdminTab('content')" class="admin-tab-item">प्रश्न अपलोडर</button>
+                <button id="admin-tab-btn-manage" onclick="switchAdminTab('manage')" class="admin-tab-item">डेटा संपादन / डिलीट (Edit & Delete)</button>
             </div>
 
             <div id="admin-tab-users" class="admin-tab-body">
-                <h3>पंजीकृत छात्र</h3>
+                <h3>पंजीकृत छात्र सूची</h3>
                 <div class="table-scroll">
                     <table>
                         <thead><tr style="background:#1e293b; color:white;"><th>नाम</th><th>मोबाइल</th><th>पासवर्ड</th><th>स्थिति</th><th>प्रीमियम कोर्स</th><th>एक्शन</th></tr></thead>
@@ -169,26 +164,138 @@
             </div>
 
             <div id="admin-tab-content" class="admin-tab-body hidden">
-                <div class="grid-admin-panel">
-                    <div class="admin-form-box">
-                        <h4>मैनुअल एंट्री फॉर्म</h4>
+                <div class="grid-admin-panel" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    
+                    <div class="admin-form-box" style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                        <h4 style="border-bottom: 2px solid #4f46e5; padding-bottom: 5px; margin-bottom: 15px; color: #4f46e5;">एक-एक करके प्रश्न जोड़ें (Manual Entry)</h4>
+                        
                         <div class="form-group">
-                            <select id="admin-form-type" onchange="adjustAdminFormLayout()">
-                                <option value="course">नया कोर्स</option><option value="subject">नया विषय</option>
-                                <option value="test">नया टेस्ट</option><option value="question">नया प्रश्न</option>
+                            <label>1. कोर्स प्रकार चुनें</label>
+                            <select id="mq-type" onchange="updateManualDropdowns('type')">
+                                <option value="">-- चुनें --</option>
+                                <option value="free">फ्री कोर्स (Free Course)</option>
+                                <option value="paid">पेड कोर्स (Paid Course)</option>
                             </select>
                         </div>
-                        <div id="dynamic-admin-inputs"></div>
-                        <button onclick="submitManualAdminForm()" class="btn-block bg-indigo" style="margin-top:15px;">सुरक्षित करें</button>
+                        <div class="form-group">
+                            <label>2. कोर्स चुनें</label>
+                            <select id="mq-course" onchange="updateManualDropdowns('course')" disabled><option value="">-- पहले प्रकार चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>3. विषय चुनें</label>
+                            <select id="mq-subject" onchange="updateManualDropdowns('subject')" disabled><option value="">-- पहले कोर्स चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>4. टेस्ट चुनें</label>
+                            <select id="mq-test" disabled><option value="">-- पहले विषय चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>प्रश्न (Question Text)</label>
+                            <textarea id="mq-text" placeholder="यहाँ अपना प्रश्न लिखें..."></textarea>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <div class="form-group"><label>Option A</label><input type="text" id="mq-oa"></div>
+                            <div class="form-group"><label>Option B</label><input type="text" id="mq-ob"></div>
+                            <div class="form-group"><label>Option C</label><input type="text" id="mq-oc"></div>
+                            <div class="form-group"><label>Option D</label><input type="text" id="mq-od"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>सही उत्तर (Correct Answer)</label>
+                            <select id="mq-correct">
+                                <option value="A">A</option><option value="B">B</option>
+                                <option value="C">C</option><option value="D">D</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>विस्तृत व्याख्या (Explanation)</label>
+                            <textarea id="mq-explanation" placeholder="इस प्रश्न का हल/व्याख्या यहाँ लिखें..."></textarea>
+                        </div>
+                        <button onclick="submitManualQuestion()" class="btn-block bg-indigo">डेटाबेस में प्रश्न सेव करें</button>
                     </div>
-                    <div class="admin-bulk-box">
-                        <h4>प्रश्नों का JSON बल्क अपलोड</h4>
-                        <select id="admin-bulk-test-select" style="width:100%; padding:10px; margin-bottom:10px;"></select>
-                        <textarea id="admin-json-textarea" rows="5" placeholder='JSON format here...' style="width:100%;"></textarea>
-                        <button onclick="uploadQuestionsBulkJSON()" class="btn-block bg-amber" style="margin-top:10px;">बल्क अपलोड करें</button>
+                    
+                    <div class="admin-bulk-box" style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                        <h4 style="border-bottom: 2px solid #f59e0b; padding-bottom: 5px; margin-bottom: 15px; color: #f59e0b;">बल्क JSON अपलोडर (Bulk Importer)</h4>
+                        
+                        <div class="form-group">
+                            <label>1. कोर्स प्रकार चुनें</label>
+                            <select id="bq-type" onchange="updateBulkDropdowns('type')">
+                                <option value="">-- चुनें --</option>
+                                <option value="free">फ्री कोर्स (Free Course)</option>
+                                <option value="paid">पेड कोर्स (Paid Course)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>2. कोर्स चुनें</label>
+                            <select id="bq-course" onchange="updateBulkDropdowns('course')" disabled><option value="">-- पहले प्रकार चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>3. विषय चुनें</label>
+                            <select id="bq-subject" onchange="updateBulkDropdowns('subject')" disabled><option value="">-- पहले कोर्स चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>4. टारगेट टेस्ट चुनें (Target Test)</label>
+                            <select id="bq-test" disabled><option value="">-- पहले विषय चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>प्रश्नों का JSON डेटा पेस्ट करें</label>
+                            <textarea id="bq-json-textarea" rows="10" placeholder='JSON format here...'></textarea>
+                        </div>
+                        <button onclick="uploadBulkJSONQuestions()" class="btn-block bg-amber">सभी प्रश्न एक साथ प्रोसेस करें</button>
                     </div>
+
                 </div>
             </div>
+
+            <div id="admin-tab-manage" class="admin-tab-body hidden">
+                <div class="admin-form-box" style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:20px;">
+                    <h4 style="color:#ef4444; border-bottom: 2px solid #ef4444; padding-bottom:5px; margin-bottom:15px;">कोर्स / विषय / टेस्ट का प्रबंधन (Edit & Delete)</h4>
+                    
+                    <div class="form-group">
+                        <label>मैनेजमेंट लेवल चुनें</label>
+                        <select id="manage-level" onchange="handleManageLevelChange()">
+                            <option value="">-- चुनें --</option>
+                            <option value="course">कोर्स (Courses)</option>
+                            <option value="subject">विषय (Subjects)</option>
+                            <option value="test">टेस्ट (Tests)</option>
+                        </select>
+                    </div>
+
+                    <div id="manage-selectors-container"></div>
+                    <div id="manage-edit-form-container" class="hidden" style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:8px;"></div>
+                </div>
+
+                <div class="admin-form-box" style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+                    <h4 style="color:#06b6d4; border-bottom: 2px solid #06b6d4; padding-bottom:5px; margin-bottom:15px;">प्रश्नों का संपादन एवं विलोपन (Manage Questions)</h4>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="form-group">
+                            <label>कोर्स प्रकार</label>
+                            <select id="mq-manage-type" onchange="updateQuestionManageDropdowns('type')">
+                                <option value="">-- चुनें --</option>
+                                <option value="free">फ्री कोर्स</option>
+                                <option value="paid">पेड कोर्स</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>कोर्स</label>
+                            <select id="mq-manage-course" onchange="updateQuestionManageDropdowns('course')" disabled><option value="">-- चुनें --</option></select>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="form-group">
+                            <label>विषय</label>
+                            <select id="mq-manage-subject" onchange="updateQuestionManageDropdowns('subject')" disabled><option value="">-- चुनें --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>टेस्ट</label>
+                            <select id="mq-manage-test" onchange="loadQuestionsForManagement()" disabled><option value="">-- चुनें --</option></select>
+                        </div>
+                    </div>
+
+                    <div id="manage-questions-list-container" style="margin-top:15px; max-height:400px; overflow-y:auto;"></div>
+                </div>
+            </div>
+
         </section>
 
     </main>
@@ -196,3 +303,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
