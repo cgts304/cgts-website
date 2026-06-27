@@ -10,11 +10,11 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-logo" onclick="showView('main-dashboard')">
+        <div class="nav-logo" onclick="navigateTo('main-dashboard')">
             <i class="fa-solid fa-gem text-gradient"></i> CGTS <span class="pro-badge">PRO</span>
         </div>
         <div id="nav-user-info">
-            <button onclick="showView('login-page')" class="btn-premium-sm">लॉगिन / साइन-अप</button>
+            <button onclick="navigateTo('login-page')" class="btn-premium-sm">लॉगिन / साइन-अप</button>
         </div>
     </nav>
 
@@ -26,15 +26,13 @@
             </div>
             <div class="grid-2">
                 <div class="card card-premium-free">
-                    <div class="card-glow"></div>
                     <h2>फ्री मॉक टेस्ट</h2>
-                    <p>बिना किसी शुल्क के बुनियादी विषयों के टेस्ट का अभ्यास करें।</p>
+                    <p>बिना किसी शुल्क के बुनियादी विषयों के टेस्ट का अभ्यास करें.</p>
                     <button onclick="loadCourses(false)" class="btn-premium bg-gradient-green">कोर्स देखें <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
                 <div class="card card-premium-paid">
-                    <div class="card-glow"></div>
                     <h2>प्रीमियम एक्सेस</h2>
-                    <p>विशेषज्ञों द्वारा तैयार किए गए पेड मॉक टेस्ट और विस्तृत हल पाएं।</p>
+                    <p>विशेषज्ञों द्वारा तैयार किए गए पेड मॉक टेस्ट और विस्तृत हल पाएं.</p>
                     <button onclick="handlePaidAccess()" class="btn-premium bg-gradient-gold">एक्सेस अनलॉक करें <i class="fa-solid fa-lock-open"></i></button>
                 </div>
             </div>
@@ -101,10 +99,9 @@
 
         <section id="result-view" class="view-section">
             <div class="result-summary-card card">
-                <div class="success-glow"></div>
                 <h2>आपका स्कोर: <span id="r-score" class="text-gradient">0</span></h2>
-                <p>टेस्ट सफलतापूर्वक सबमिट हो चुका है। नीचे विश्लेषण देखें।</p>
-                <button onclick="showView('main-dashboard')" class="btn-premium bg-gradient-slate" style="max-width:200px; margin:15px auto 0 auto;">डैशबोर्ड वापस जाएं</button>
+                <p>टेस्ट सफलतापूर्वक सबमिट हो चुका है। नीचे विश्लेषण देखें.</p>
+                <button onclick="navigateTo('main-dashboard')" class="btn-premium bg-gradient-slate" style="max-width:200px; margin:15px auto 0 auto;">डैशबोर्ड वापस जाएं</button>
             </div>
             <div id="result-list" class="solutions-card card" style="margin-top:25px;"></div>
         </section>
@@ -130,9 +127,8 @@
 
             <div id="adm-content" class="admin-tab-body hidden">
                 <div class="grid-admin-panel">
-                    
                     <div class="admin-form-box card">
-                        <h4 class="text-gradient"><i class="fa-solid fa-folder-plus"></i> संरचना बनाएँ (Create Structure)</h4>
+                        <h4 class="text-gradient"><i class="fa-solid fa-folder-plus"></i> संरचना बनाएँ</h4>
                         <div class="form-group">
                             <label>क्या बनाना चाहते हैं?</label>
                             <select id="cr-level" onchange="updateCreatorUI()">
@@ -141,50 +137,31 @@
                                 <option value="test">नया टेस्ट (New Test)</option>
                             </select>
                         </div>
-                        
                         <div id="cr-relation-block"></div>
-
                         <div class="form-group">
                             <label id="cr-label-title">कोर्स का नाम</label>
                             <input type="text" id="cr-title" placeholder="यहाँ नाम दर्ज करें..." required>
                         </div>
-                        <div class="form-group id="cr-paid-block">
+                        <div class="form-group" id="cr-paid-block">
                             <label><input type="checkbox" id="cr-is-paid"> क्या यह पेड (Premium) कोर्स है?</label>
                         </div>
                         <button onclick="executeCreation()" class="btn-premium bg-gradient-indigo">नया आइटम लाइव जोड़ें</button>
                     </div>
                     
                     <div class="admin-bulk-box card">
-                        <h4 style="color:var(--warning);"><i class="fa-solid fa-bolt"></i> बल्क JSON अपलोडर (क्वेश्चन + टाइमर)</h4>
+                        <h4 style="color:var(--warning);"><i class="fa-solid fa-bolt"></i> बल्क JSON अपलोडर</h4>
+                        <div class="form-group"><label>1. कोर्स चुनें</label><select id="bq-course" onchange="cascade('bq','course')"></select></div>
+                        <div class="form-group"><label>2. विषय चुनें</label><select id="bq-subject" onchange="cascade('bq','subject')" disabled></select></div>
+                        <div class="form-group"><label>3. टेस्ट चुनें</label><select id="bq-test" disabled></select></div>
                         <div class="form-group">
-                            <label>1. कोर्स चुनें</label>
-                            <select id="bq-course" onchange="cascade('bq','course')"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>2. विषय चुनें</label>
-                            <select id="bq-subject" onchange="cascade('bq','subject')" disabled></select>
-                        </div>
-                        <div class="form-group">
-                            <label>3. टेस्ट चुनें (Target Test)</label>
-                            <select id="bq-test" disabled></select>
-                        </div>
-                        <div class="form-group">
-                            <label>प्रश्नों का JSON पेस्ट करें (`time_limit` अनिवार्य है)</label>
-                            <textarea id="bq-json" rows="7" placeholder='[
-  {
-    "question_text": "भारत का राष्ट्रीय पशु क्या है?",
-    "option_a": "शेर", "option_b": "बाघ", "option_c": "चीता", "option_d": "हाथी",
-    "correct_option": "B",
-    "explanation": "बाघ (Tiger) भारत का राष्ट्रीय पशु है।",
-    "time_limit": 45
-  }
-]'></textarea>
+                            <label>प्रश्नों का JSON पेस्ट करें</label>
+                            <textarea id="bq-json" rows="5" placeholder='[{"question_text": "Q?", "option_a": "A", "option_b": "B", "correct_option": "B", "time_limit": 45}]'></textarea>
                         </div>
                         <button onclick="addBulkQ()" class="btn-premium bg-gradient-gold">सभी प्रश्न इम्पोर्ट करें</button>
                     </div>
 
                     <div class="admin-form-box card" style="grid-column: 1/-1; border-top: 4px solid var(--primary);">
-                        <h4 class="text-gradient"><i class="fa-solid fa-layer-group"></i> लाइव सामग्री प्रबंधन (View / Edit / Delete)</h4>
+                        <h4 class="text-gradient"><i class="fa-solid fa-layer-group"></i> लाइव सामग्री प्रबंधन</h4>
                         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin:15px 0;">
                             <select id="mg-course" onchange="loadManager('course')"></select>
                             <select id="mg-subject" onchange="loadManager('subject')"></select>
@@ -201,6 +178,8 @@
             </div>
         </section>
     </main>
-    <script src="script.js"></script>
+
+    <script src="router.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
