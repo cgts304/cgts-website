@@ -1,52 +1,197 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGTS - Your Learning Partner</title>
+    <title>CGTS - ऑनलाइन टेस्ट सीरीज़</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <!-- Header Section -->
-    <header>
-        <div class="logo">CGTS</div>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#courses">Courses</a></li>
-                <li><a href="#about">About Us</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <h1>Welcome to CGTS</h1>
-        <p>Your ultimate destination for exam preparation and success.</p>
-        <button id="exploreBtn">Explore Courses</button>
-    </section>
-
-    <!-- Features Section -->
-    <section id="courses" class="features">
-        <h2>Our Popular Courses</h2>
-        <div class="card-container">
-            <div class="card">
-                <h3>Competitive Exams</h3>
-                <p>Prepare with top-tier mock tests and study materials.</p>
-            </div>
-            <div class="card">
-                <h3>Skill Development</h3>
-                <p>Enhance your skills with industry-ready certification programs.</p>
-            </div>
+    <nav class="navbar">
+        <div class="nav-logo" onclick="showView('main-dashboard')">
+            <i class="fa-solid fa-graduation-cap text-yellow"></i> CGTS
         </div>
-    </section>
+        <div id="nav-user-info">
+            <button onclick="showView('login-page')" class="btn-primary-sm">
+                <i class="fa-solid fa-right-to-bracket"></i> लॉगिन / रजिस्ट्रेशन
+            </button>
+        </div>
+    </nav>
 
-    <!-- Footer Section -->
-    <footer>
-        <p>&copy; 2026 CGTS. All Rights Reserved.</p>
-    </footer>
+    <main class="container">
+
+        <!-- DASHBOARD -->
+        <section id="main-dashboard" class="view-section active">
+            <div class="hero-text">
+                <h1>CGTS ऑनलाइन टेस्ट सीरीज़</h1>
+                <p>अपनी सफलता को सुनिश्चित करने के लिए सर्वश्रेष्ठ मॉक टेस्ट चुनें।</p>
+            </div>
+            
+            <div class="grid-2">
+                <div class="card card-free">
+                    <div class="card-header">
+                        <i class="fa-solid fa-book-open icon-lg"></i>
+                        <span class="badge bg-green">मुफ़्त कोर्स</span>
+                    </div>
+                    <h2>फ्री कोर्स</h2>
+                    <p>बिना किसी शुल्क के बुनियादी विषयों के मॉक टेस्ट का अभ्यास करें।</p>
+                    <button onclick="loadFreeCourses()" class="btn-action bg-green">कोर्स देखें <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+
+                <div class="card card-paid">
+                    <div class="card-header">
+                        <i class="fa-solid fa-crown icon-lg"></i>
+                        <span class="badge bg-amber">प्रीमियम Access</span>
+                    </div>
+                    <h2>पेड कोर्स</h2>
+                    <p>प्रीमियम टेस्ट सीरीज़ तक पहुँच प्राप्त करें। एडमिन अप्रूवल आवश्यक है।</p>
+                    <button onclick="handlePaidAccess()" class="btn-action bg-amber">लॉगइन कर एक्सेस करें <i class="fa-solid fa-lock"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LOGIN / REGISTRATION -->
+        <section id="login-page" class="view-section">
+            <div class="auth-box">
+                <div class="auth-tabs">
+                    <button id="tab-student-login" onclick="switchAuthTab('student-login')" class="tab-btn active">छात्र लॉगिन</button>
+                    <button id="tab-student-reg" onclick="switchAuthTab('student-reg')" class="tab-btn">रजिस्ट्रेशन</button>
+                    <button id="tab-admin-login" onclick="switchAuthTab('admin-login')" class="tab-btn">एडमिन</button>
+                </div>
+
+                <div class="auth-body">
+                    <form id="form-student-login" onsubmit="handleStudentLogin(event)">
+                        <h3>विद्यार्थी लॉगिन</h3>
+                        <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="stud-login-phone" required></div>
+                        <div class="form-group"><label>पासवर्ड</label><input type="password" id="stud-login-pass" required></div>
+                        <button type="submit" class="btn-block bg-indigo">प्रवेश करें</button>
+                    </form>
+
+                    <form id="form-student-reg" onsubmit="handleStudentRegistration(event)" class="hidden">
+                        <h3>नया छात्र पंजीकरण</h3>
+                        <div class="info-alert">पंजीकरण के बाद एडमिन अप्रूवल मिलने पर ही पेड कोर्स खुलेंगे।</div>
+                        <div class="form-group"><label>पूरा नाम</label><input type="text" id="stud-reg-name" required></div>
+                        <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="stud-reg-phone" required></div>
+                        <div class="form-group"><label>पासवर्ड सेट करें</label><input type="password" id="stud-reg-pass" required></div>
+                        <button type="submit" class="btn-block bg-green">रजिस्टर करें</button>
+                    </form>
+
+                    <form id="form-admin-login" onsubmit="handleAdminLogin(event)" class="hidden">
+                        <h3>एडमिन लॉगिन</h3>
+                        <div class="form-group"><label>यूज़रनेम</label><input type="text" id="admin-user" required></div>
+                        <div class="form-group"><label>पासवर्ड</label><input type="password" id="admin-pass" required></div>
+                        <button type="submit" class="btn-block bg-slate">कंसोल खोलें</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- COURSE LISTING -->
+        <section id="listing-view" class="view-section">
+            <div class="back-nav">
+                <button onclick="goBackFromListing()"><i class="fa-solid fa-arrow-left"></i> पीछे जाएं</button>
+                <span id="current-listing-title" class="bold-text" style="margin-left:10px;"></span>
+            </div>
+            <div class="banner-header">
+                <div><h2 id="listing-heading">उपलब्ध विषय</h2></div>
+                <div id="course-type-tag" class="tag"></div>
+            </div>
+            <div id="listing-grid" class="grid-3"></div>
+        </section>
+
+        <!-- QUIZ ENGINE -->
+        <section id="quiz-view" class="view-section">
+            <div class="quiz-box-container">
+                <div class="quiz-top-bar">
+                    <div><h2 id="quiz-test-title" style="font-size:18px;">मॉक टेस्ट</h2><span style="font-size:12px;">सही (+1) | गलत (-0.25)</span></div>
+                    <div class="timer-badge"><i class="fa-solid fa-clock"></i> <span id="quiz-timer">00:00</span></div>
+                </div>
+                <div class="quiz-body">
+                    <div class="progress-bar-info">
+                        <span id="quiz-question-number" style="font-weight:bold; color:#4f46e5;">प्रश्न 1</span>
+                        <span id="quiz-per-question-timer" style="color:#f59e0b; font-weight:bold;">समय शेष: 60s</span>
+                    </div>
+                    <div class="question-wrapper"><p id="quiz-question-text"></p></div>
+                    <div class="options-list">
+                        <button onclick="selectOption('A')" id="btn-opt-A" class="quiz-opt-btn"><span class="opt-label">A</span> <span id="text-opt-A"></span></button>
+                        <button onclick="selectOption('B')" id="btn-opt-B" class="quiz-opt-btn"><span class="opt-label">B</span> <span id="text-opt-B"></span></button>
+                        <button onclick="selectOption('C')" id="btn-opt-C" class="quiz-opt-btn"><span class="opt-label">C</span> <span id="text-opt-C"></span></button>
+                        <button onclick="selectOption('D')" id="btn-opt-D" class="quiz-opt-btn"><span class="opt-label">D</span> <span id="text-opt-D"></span></button>
+                    </div>
+                    <div class="quiz-footer">
+                        <button onclick="quitTest()" class="btn-text-red">छोड़ें</button>
+                        <button onclick="nextQuestion()" id="quiz-next-btn" class="btn-next bg-indigo">अगला प्रश्न</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULT -->
+        <section id="result-view" class="view-section">
+            <div class="result-summary-card">
+                <h2>टेस्ट परिणाम</h2>
+                <div class="grid-4-stats">
+                    <div class="stat-box bg-light-indigo"><span>कुल अंक</span><span id="res-total-score" class="num-bold text-indigo">0.00</span></div>
+                    <div class="stat-box bg-light-green"><span>सही</span><span id="res-correct-count" class="num-bold text-green">0</span></div>
+                    <div class="stat-box bg-light-red"><span>गलत</span><span id="res-wrong-count" class="num-bold text-red">0</span></div>
+                    <div class="stat-box bg-light-gray"><span>कुल प्रश्न</span><span id="res-total-questions" class="num-bold text-gray">0</span></div>
+                </div>
+                <button onclick="showView('main-dashboard')" class="btn-block bg-slate">डैशबोर्ड पर जाएं</button>
+            </div>
+            <div class="solutions-card">
+                <h3>प्रश्नों की समीक्षा एवं व्याख्या</h3>
+                <div id="result-solutions-list" class="solutions-divider"></div>
+            </div>
+        </section>
+
+        <!-- ADMIN PANEL -->
+        <section id="admin-dashboard" class="view-section">
+            <div class="admin-top">
+                <h2>एडमिन पैनल</h2>
+                <button onclick="logout()" class="btn-text-red">लॉगआऊट</button>
+            </div>
+            <div class="admin-tab-nav">
+                <button id="admin-tab-btn-users" onclick="switchAdminTab('users')" class="admin-tab-item active">छात्र मैनेजमेंट</button>
+                <button id="admin-tab-btn-content" onclick="switchAdminTab('content')" class="admin-tab-item">कोर्स / JSON</button>
+            </div>
+
+            <div id="admin-tab-users" class="admin-tab-body">
+                <h3>पंजीकृत छात्र</h3>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr style="background:#1e293b; color:white;"><th>नाम</th><th>मोबाइल</th><th>पासवर्ड</th><th>स्थिति</th><th>प्रीमियम कोर्स</th><th>एक्शन</th></tr></thead>
+                        <tbody id="admin-users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="admin-tab-content" class="admin-tab-body hidden">
+                <div class="grid-admin-panel">
+                    <div class="admin-form-box">
+                        <h4>मैनुअल एंट्री फॉर्म</h4>
+                        <div class="form-group">
+                            <select id="admin-form-type" onchange="adjustAdminFormLayout()">
+                                <option value="course">नया कोर्स</option><option value="subject">नया विषय</option>
+                                <option value="test">नया टेस्ट</option><option value="question">नया प्रश्न</option>
+                            </select>
+                        </div>
+                        <div id="dynamic-admin-inputs"></div>
+                        <button onclick="submitManualAdminForm()" class="btn-block bg-indigo" style="margin-top:15px;">सुरक्षित करें</button>
+                    </div>
+                    <div class="admin-bulk-box">
+                        <h4>प्रश्नों का JSON बल्क अपलोड</h4>
+                        <select id="admin-bulk-test-select" style="width:100%; padding:10px; margin-bottom:10px;"></select>
+                        <textarea id="admin-json-textarea" rows="5" placeholder='JSON format here...' style="width:100%;"></textarea>
+                        <button onclick="uploadQuestionsBulkJSON()" class="btn-block bg-amber" style="margin-top:10px;">बल्क अपलोड करें</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <script src="script.js"></script>
 </body>
