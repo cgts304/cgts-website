@@ -1,73 +1,357 @@
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-body { background-color: #f1f5f9; color: #1e293b; padding-bottom: 50px; }
+let currentUser = null;       
+let currentCourseType = 'free'; 
+let navigationStack = [];     
 
-.navbar { background-color: #1e40af; color: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-.nav-logo { font-size: 20px; font-weight: bold; cursor: pointer; }
-.text-yellow { color: #fbbf24; }
+let courses = []; let subjects = []; let tests = []; let questions = []; let studentsList = []; 
+let activeTestQuestions = []; let currentQuestionIdx = 0; let selectedAnswers = {}; 
+let overallTimerInterval = null; let perQuestionTimerInterval = null;
+let overallSecondsElapsed = 0; let perQuestionSecondsRemaining = 60;
 
-.btn-primary-sm { background-color: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; }
-.btn-action { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 15px; }
-.btn-block { width: 100%; padding: 12px; color: white; border: none; border-radius: 8px; font-weight: bold; }
-.btn-text-red { background: none; border: none; color: #ef4444; font-weight: bold; }
+function initMockData() {
+    courses = [
+        { id: "c1", title: "सामान्य ज्ञान (GK) बुनियादी कोर्स", is_paid: false },
+        { id: "c2", title: "प्रीमियम रेलवे भर्ती (RRB Advance)", is_paid: true }
+    ];
+    subjects = [
+        { id: "s1", course_id: "c1", title: "भारतीय इतिहास" },
+        { id: "s2", course_id: "c2", title: "अंकगणित योग्यता" }
+    ];
+    tests = [
+        { id: "t1", subject_id: "s1", title: "प्राचीन भारत का इतिहास - टेस्ट 1" }
+    ];
+    questions = [
+        { id: "q1", test_id: "t1", question_text: "हड़प्पा सभ्यता की खोज किस वर्ष हुई थी?", option_a: "1921", option_b: "1935", option_c: "1942", option_d: "1947", correct_option: "A", explanation: "1921 में दयाराम साहनी द्वारा।" },
+        { id: "q2", test_id: "t1", question_text: "प्रकाश वर्ष किसका मात्रक है?", option_a: "समय", option_b: "दूरी", option_c: "गति", option_d: "ऊर्जा", correct_option: "B", explanation: "दूरी का मात्रक है।" }
+    ];
+    studentsList = [
+        { id: "u1", name: "रमेश कुमार", phone: "9876543210", password: "pass", status: "Approved", is_course_enabled: true }
+    ];
+}
 
-.bg-green { background-color: #10b981; } .bg-amber { background-color: #f59e0b; }
-.bg-indigo { background-color: #4f46e5; } .bg-slate { background-color: #334155; }
+function showView(viewId) {
+    document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    window.scrollTo(0,0);
+}
 
-.container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-.view-section { display: none; } .view-section.active { display: block; } .hidden { display: none !important; }
+function switchAuthTab(tabName) {
+    document.getElementById('form-student-login').classList.add('hidden');
+    document.getElementById('form-student-reg').classList.add('hidden');
+    document.getElementById('form-admin-login').classList.add('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
-.hero-text { text-align: center; margin: 20px 0; }
-.hero-text h1 { font-size: 24px; color: #0f172a; } .hero-text p { color: #64748b; font-size: 14px; margin-top: 5px; }
+    if (tabName === 'student-login') { document.getElementById('form-student-login').classList.remove('hidden'); document.getElementById('tab-student-login').classList.add('active'); }
+    else if (tabName === 'student-reg') { document.getElementById('form-student-reg').classList.remove('hidden'); document.getElementById('tab-student-reg').classList.add('active'); }
+    else if (tabName === 'admin-login') { document.getElementById('form-admin-login').classList.remove('hidden'); document.getElementById('tab-admin-login').classList.add('active'); }
+}
 
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.card-free { border-top: 5px solid #10b981; } .card-paid { border-top: 5px solid #f59e0b; }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
+function handlePaidAccess() {
+    if (currentUser) {
+        if (currentUser.status !== 'Approved') return alert("पंजीकरण पेंडिंग है।");
+        if (!currentUser.is_course_enabled) return alert("एक्सेस डिसेबल है।");
+        currentCourseType = 'paid'; loadCoursesList();
+    } else {
+        currentCourseType = 'paid'; showView('login-page'); switchAuthTab('student-login');
+    }
+}
 
-.auth-box { max-width: 400px; margin: 30px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-.auth-tabs { display: flex; background: #e2e8f0; }
-.tab-btn { flex: 1; padding: 12px; border: none; background: none; font-weight: bold; color: #64748b; }
-.tab-btn.active { background: white; color: #4f46e5; border-bottom: 3px solid #4f46e5; }
-.auth-body { padding: 25px; }
-.form-group { margin-bottom: 15px; } .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+function handleStudentLogin(e) {
+    e.preventDefault();
+    const phone = document.getElementById('stud-login-phone').value.trim();
+    const pass = document.getElementById('stud-login-pass').value.trim();
+    const user = studentsList.find(s => s.phone === phone && s.password === pass);
+    if (!user) return alert("गलत डिटेल्स!");
+    currentUser = user;
+    document.getElementById('nav-user-info').innerHTML = `<span style="font-size:12px; background:#1d4ed8; padding:6px; border-radius:4px; color:#fef08a; margin-right:5px;">${user.name}</span> <button onclick="logout()" class="btn-primary-sm" style="background:#dc2626;">लॉगआउट</button>`;
+    if (currentCourseType === 'paid') handlePaidAccess(); else showView('main-dashboard');
+}
 
-.banner-header { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #1e40af; }
-.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+function handleStudentRegistration(e) {
+    e.preventDefault();
+    const name = document.getElementById('stud-reg-name').value.trim();
+    const phone = document.getElementById('stud-reg-phone').value.trim();
+    const pass = document.getElementById('stud-reg-pass').value.trim();
+    studentsList.push({ id: "u_" + Date.now(), name: name, phone: phone, password: pass, status: "Pending", is_course_enabled: false });
+    alert("पंजीकरण सफल! लॉगिन करें।"); switchAuthTab('student-login');
+}
 
-.quiz-box-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; }
-.quiz-top-bar { background: #0f172a; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-.timer-badge { background: #f59e0b; color: #0f172a; font-weight: bold; padding: 6px 12px; border-radius: 8px; }
-.quiz-body { padding: 20px; }
-.progress-bar-info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 15px; background: #f8fafc; padding: 8px; border-radius: 6px; }
-.question-wrapper { background: #f0f4ff; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; border: 1px solid #dbeafe; }
-.options-list { display: grid; gap: 10px; }
-.quiz-opt-btn { width: 100%; padding: 14px; text-align: left; background: white; border: 2px solid #e2e8f0; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 15px; }
-.quiz-opt-btn.selected { border-color: #4f46e5; background-color: #f5f3ff; }
-.opt-label { background: #e2e8f0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; font-size: 12px; }
-.quiz-footer { display: flex; justify-content: space-between; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
-.btn-next { padding: 10px 20px; color: white; border: none; border-radius: 6px; font-weight: bold; }
+function handleAdminLogin(e) {
+    e.preventDefault();
+    if (document.getElementById('admin-user').value === "admin" && document.getElementById('admin-pass').value === "admin123") {
+        document.getElementById('nav-user-info').innerHTML = `<button onclick="logout()" class="btn-primary-sm" style="background:#dc2626;">लॉगआउट</button>`;
+        renderAdminDashboard(); showView('admin-dashboard');
+    } else alert("गलत क्रेडेंशियल्स!");
+}
 
-.result-summary-card { background: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
-.grid-4-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
-.stat-box { padding: 15px; border-radius: 10px; display: flex; flex-direction: column; font-size: 12px; font-weight: bold; }
-.num-bold { font-size: 20px; font-weight: 900; margin-top: 5px; }
-.bg-light-indigo { background: #eff6ff; } .text-indigo { color: #1e40af; }
-.bg-light-green { background: #ecfdf5; } .text-green { color: #047857; }
-.bg-light-red { background: #fef2f2; } .text-red { color: #b91c1c; }
-.bg-light-gray { background: #f8fafc; } .text-gray { color: #475569; }
+function logout() { currentUser = null; document.getElementById('nav-user-info').innerHTML = `<button onclick="showView('login-page')" class="btn-primary-sm">लॉगिन / रजिस्ट्रेशन</button>`; showView('main-dashboard'); }
 
-.solutions-card { background: white; padding: 20px; border-radius: 12px; }
-.solution-node-box { background: #fafafa; padding: 15px; margin-top: 15px; border-radius: 8px; border-left: 4px solid #10b981; }
-.sol-text-green { color: #10b981; font-weight: bold; }
+function loadFreeCourses() { currentCourseType = 'free'; loadCoursesList(); }
 
-.admin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.admin-tab-nav { display: flex; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.admin-tab-item { flex: 1; padding: 12px; border: none; background: none; font-weight: bold; color: #475569; border-bottom: 3px solid transparent; }
-.admin-tab-item.active { background: #eff6ff; color: #1e40af; border-bottom-color: #1e40af; }
-.table-scroll { overflow-x: auto; background: white; border-radius: 8px; }
-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
-.grid-admin-panel { display: grid; grid-template-columns: 1fr; gap: 20px; }
-.admin-form-box, .admin-bulk-box { background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+function loadCoursesList() {
+    let items = courses.filter(c => c.is_paid === (currentCourseType === 'paid'));
+    renderListingView(currentCourseType==="free"?"फ्री कोर्सेस":"पेड कोर्सेस", items, 'course');
+}
+
+function renderListingView(title, items, level) {
+    document.getElementById('current-listing-title').innerText = title;
+    const grid = document.getElementById('listing-grid'); grid.innerHTML = "";
+    if (items.length === 0) { grid.innerHTML = `<p>कोई सामग्री नहीं है।</p>`; showView('listing-view'); return; }
+    items.forEach(item => {
+        let act = level === 'course' ? `handleListingClick('course', '${item.id}')` : level === 'subject' ? `handleListingClick('subject', '${item.id}')` : `startTestEngine('${item.id}')`;
+        grid.innerHTML += `<div onclick="${act}" style="background:white; padding:15px; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer;"><h4 style="color:#1e3a8a;">${item.title}</h4></div>`;
+    });
+    showView('listing-view');
+}
+
+function handleListingClick(level, id) {
+    navigationStack.push({ level, id });
+    if (level === 'course') renderListingView(courses.find(c=>c.id===id).title, subjects.filter(s=>s.course_id===id), 'subject');
+    else if (level === 'subject') renderListingView(subjects.find(s=>s.id===id).title, tests.filter(t=>t.subject_id===id), 'test');
+}
+
+function goBackFromListing() {
+    navigationStack.pop();
+    if (navigationStack.length === 0) showView('main-dashboard');
+    else { let prev = navigationStack.pop(); handleListingClick(prev.level, prev.id); }
+}
+
+function startTestEngine(testId) {
+    activeTestQuestions = questions.filter(q => q.test_id === testId);
+    if (activeTestQuestions.length === 0) { alert("प्रश्न उपलब्ध नहीं हैं!"); return; }
+    document.getElementById('quiz-test-title').innerText = tests.find(t=>t.id===testId).title;
+    currentQuestionIdx = 0; selectedAnswers = {}; overallSecondsElapsed = 0;
+    renderQuizQuestion(); showView('quiz-view');
+    clearInterval(overallTimerInterval);
+    overallTimerInterval = setInterval(() => {
+        overallSecondsElapsed++;
+        document.getElementById('quiz-timer').innerText = `${Math.floor(overallSecondsElapsed/60).toString().padStart(2,'0')}:${(overallSecondsElapsed%60).toString().padStart(2,'0')}`;
+    }, 1000);
+    startPerQuestionCountdown();
+}
+
+function startPerQuestionCountdown() {
+    perQuestionSecondsRemaining = 60;
+    clearInterval(perQuestionTimerInterval);
+    perQuestionTimerInterval = setInterval(() => {
+        perQuestionSecondsRemaining--;
+        document.getElementById('quiz-per-question-timer').innerText = `समय शेष: ${perQuestionSecondsRemaining}s`;
+        if (perQuestionSecondsRemaining <= 0) { alert("समय समाप्त!"); nextQuestion(); }
+    }, 1000);
+}
+
+function renderQuizQuestion() {
+    let q = activeTestQuestions[currentQuestionIdx];
+    document.getElementById('quiz-question-number').innerText = `प्रश्न ${currentQuestionIdx + 1} / ${activeTestQuestions.length}`;
+    document.getElementById('quiz-question-text').innerText = q.question_text;
+    ['A','B','C','D'].forEach(opt => document.getElementById(`text-opt-${opt}`).innerText = q[`option_${opt.toLowerCase()}`]);
+    document.querySelectorAll('.quiz-opt-btn').forEach(b => b.classList.remove('selected'));
+    if (selectedAnswers[q.id]) document.getElementById(`btn-opt-${selectedAnswers[q.id]}`).classList.add('selected');
+    
+    let btn = document.getElementById('quiz-next-btn');
+    if (currentQuestionIdx === activeTestQuestions.length - 1) { btn.innerText = "सबमिट करें"; btn.className = "btn-next bg-green"; }
+    else { btn.innerText = "अगला प्रश्न"; btn.className = "btn-next bg-indigo"; }
+}
+
+function selectOption(opt) { selectedAnswers[activeTestQuestions[currentQuestionIdx].id] = opt; document.querySelectorAll('.quiz-opt-btn').forEach(b => b.classList.remove('selected')); document.getElementById(`btn-opt-${opt}`).classList.add('selected'); }
+
+function nextQuestion() {
+    if (currentQuestionIdx < activeTestQuestions.length - 1) { currentQuestionIdx++; renderQuizQuestion(); startPerQuestionCountdown(); }
+    else evaluateAndDisplayResults();
+}
+
+function quitTest() { clearInterval(overallTimerInterval); clearInterval(perQuestionTimerInterval); showView('main-dashboard'); }
+
+function evaluateAndDisplayResults() {
+    clearInterval(overallTimerInterval); clearInterval(perQuestionTimerInterval);
+    let correct = 0, wrong = 0;
+    activeTestQuestions.forEach(q => { if (selectedAnswers[q.id]) { if (selectedAnswers[q.id] === q.correct_option) correct++; else wrong++; } });
+    
+    document.getElementById('res-total-score').innerText = ((correct * 1) - (wrong * 0.25)).toFixed(2);
+    document.getElementById('res-correct-count').innerText = correct; document.getElementById('res-wrong-count').innerText = wrong; document.getElementById('res-total-questions').innerText = activeTestQuestions.length;
+    
+    let list = document.getElementById('result-solutions-list'); list.innerHTML = "";
+    activeTestQuestions.forEach((q, idx) => {
+        let userAns = selectedAnswers[q.id] || "छोड़ा";
+        let isCorr = userAns === q.correct_option;
+        list.innerHTML += `<div class="solution-node-box" style="border-left-color:${isCorr?'#10b981':(userAns==='छोड़ा'?'gray':'red')}">
+            <p><strong>प्रश्न ${idx+1}:</strong> ${q.question_text}</p>
+            <p style="font-size:13px; color:gray;">आपका उत्तर: ${userAns} | सही: <strong>${q.correct_option}</strong></p>
+            <p style="font-size:12px; background:#f1f5f9; padding:5px; margin-top:5px;"><strong>व्याख्या:</strong> ${q.explanation}</p>
+        </div>`;
+    });
+    showView('result-view');
+}
+
+function switchAdminTab(t) {
+    document.querySelectorAll('.admin-tab-body').forEach(b => b.classList.add('hidden'));
+    document.querySelectorAll('.admin-tab-item').forEach(i => i.classList.remove('active'));
+    document.getElementById(`admin-tab-${t}`).classList.remove('hidden');
+    document.getElementById(`admin-tab-btn-${t}`).classList.add('active');
+}
+
+function renderAdminDashboard() {
+    let tbody = document.getElementById('admin-users-table-body'); tbody.innerHTML = "";
+    studentsList.forEach(s => {
+        tbody.innerHTML += `<tr>
+            <td>${s.name}</td><td>${s.phone}</td><td>${s.password}</td>
+            <td><button onclick="updateStatus('${s.id}')" style="padding:4px; font-size:11px;">${s.status}</button></td>
+            <td><input type="checkbox" ${s.is_course_enabled?'checked':''} onchange="toggleAcc('${s.id}', this.checked)"></td>
+            <td><button onclick="updateStatus('${s.id}', 'Block')" style="color:red; background:none; border:none;">ब्लॉक</button></td>
+        </tr>`;
+    });
+    resetAdminDropdownSystem();
+}
+
+function updateStatus(id, stat='Approved') { let s = studentsList.find(st=>st.id===id); if(s){ s.status=stat; renderAdminDashboard();} }
+function toggleAcc(id, chk) { let s = studentsList.find(st=>st.id===id); if(s){ s.is_course_enabled=chk; renderAdminDashboard();} }
+
+
+// ================= CASCADE DROPDOWN SYSTEM LOGIC =================
+
+function resetAdminDropdownSystem() {
+    // Reset Manual Dropdowns
+    document.getElementById('mq-type').value = "";
+    document.getElementById('mq-course').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('mq-course').disabled = true;
+    document.getElementById('mq-subject').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('mq-subject').disabled = true;
+    document.getElementById('mq-test').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('mq-test').disabled = true;
+
+    // Reset Bulk Dropdowns
+    document.getElementById('bq-type').value = "";
+    document.getElementById('bq-course').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('bq-course').disabled = true;
+    document.getElementById('bq-subject').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('bq-subject').disabled = true;
+    document.getElementById('bq-test').innerHTML = '<option value="">-- चुनें --</option>'; document.getElementById('bq-test').disabled = true;
+
+    // Refresh Content Control Room Manager Master Dropdown
+    const mngrCourse = document.getElementById('mngr-course');
+    mngrCourse.innerHTML = '<option value="">-- कोर्स चुनें (मैनेजर) --</option>' + courses.map(c => `<option value="${c.id}">${c.title} [${c.is_paid?'PAID':'FREE'}]</option>`).join('');
+    document.getElementById('mngr-subject').innerHTML = '<option value="">-- पहले कोर्स चुनें --</option>';
+    document.getElementById('mngr-test').innerHTML = '<option value="">-- पहले विषय चुनें --</option>';
+    document.getElementById('mngr-table-body').innerHTML = `<tr><td colspan="2" style="text-align:center; color:gray;">कृपया ऊपर से कोई भी कोर्स या फ़िल्टर चुनें।</td></tr>`;
+}
+
+// 1. MANUAL FORM HANDLERS
+function updateManualDropdowns(step) {
+    const typeVal = document.getElementById('mq-type').value;
+    const courseEl = document.getElementById('mq-course');
+    const subjectEl = document.getElementById('mq-subject');
+    const testEl = document.getElementById('mq-test');
+
+    if (step === 'type') {
+        if (!typeVal) { courseEl.disabled = true; subjectEl.disabled = true; testEl.disabled = true; return; }
+        let isPaidTarget = (typeVal === 'paid');
+        let filteredCourses = courses.filter(c => c.is_paid === isPaidTarget);
+        
+        courseEl.innerHTML = '<option value="">-- कोर्स चुनें --</option>' + filteredCourses.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+        courseEl.disabled = false; subjectEl.disabled = true; testEl.disabled = true;
+    } 
+    else if (step === 'course') {
+        const courseId = courseEl.value;
+        if (!courseId) { subjectEl.disabled = true; testEl.disabled = true; return; }
+        let filteredSubjects = subjects.filter(s => s.course_id === courseId);
+        
+        subjectEl.innerHTML = '<option value="">-- विषय चुनें --</option>' + filteredSubjects.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+        subjectEl.disabled = false; testEl.disabled = true;
+    } 
+    else if (step === 'subject') {
+        const subjectId = subjectEl.value;
+        if (!subjectId) { testEl.disabled = true; return; }
+        let filteredTests = tests.filter(t => t.subject_id === subjectId);
+        
+        testEl.innerHTML = '<option value="">-- टेस्ट चुनें --</option>' + filteredTests.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+        testEl.disabled = false;
+    }
+}
+
+function submitManualQuestion() {
+    const testId = document.getElementById('mq-test').value;
+    const qText = document.getElementById('mq-text').value.trim();
+    const oa = document.getElementById('mq-oa').value.trim();
+    const ob = document.getElementById('mq-ob').value.trim();
+    const oc = document.getElementById('mq-oc').value.trim();
+    const od = document.getElementById('mq-od').value.trim();
+    const corr = document.getElementById('mq-correct').value;
+    const exp = document.getElementById('mq-explanation').value.trim();
+
+    if (!testId || !qText || !oa || !ob) { return alert("कृपया टेस्ट चुनें और प्रश्न के साथ कम से कम दो ऑप्शन्स (A & B) ज़रूर भरें!"); }
+
+    questions.push({
+        id: "q_" + Date.now(),
+        test_id: testId,
+        question_text: qText,
+        option_a: oa, option_b: ob, option_c: oc, option_d: od,
+        correct_option: corr,
+        explanation: exp
+    });
+
+    alert("प्रश्न सफलतापूर्वक डेटाबेस में जोड़ दिया गया है!");
+    document.getElementById('mq-text').value = "";
+    document.getElementById('mq-oa').value = ""; document.getElementById('mq-ob').value = "";
+    document.getElementById('mq-oc').value = ""; document.getElementById('mq-od').value = "";
+    document.getElementById('mq-explanation').value = "";
+    renderAdminDashboard();
+}
+
+// 2. BULK JSON IMPORTER HANDLERS
+function updateBulkDropdowns(step) {
+    const typeVal = document.getElementById('bq-type').value;
+    const courseEl = document.getElementById('bq-course');
+    const subjectEl = document.getElementById('bq-subject');
+    const testEl = document.getElementById('bq-test');
+
+    if (step === 'type') {
+        if (!typeVal) { courseEl.disabled = true; subjectEl.disabled = true; testEl.disabled = true; return; }
+        let isPaidTarget = (typeVal === 'paid');
+        let filteredCourses = courses.filter(c => c.is_paid === isPaidTarget);
+        
+        courseEl.innerHTML = '<option value="">-- कोर्स चुनें --</option>' + filteredCourses.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+        courseEl.disabled = false; subjectEl.disabled = true; testEl.disabled = true;
+    } 
+    else if (step === 'course') {
+        const courseId = courseEl.value;
+        if (!courseId) { subjectEl.disabled = true; testEl.disabled = true; return; }
+        let filteredSubjects = subjects.filter(s => s.course_id === courseId);
+        
+        subjectEl.innerHTML = '<option value="">-- विषय चुनें --</option>' + filteredSubjects.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+        subjectEl.disabled = false; testEl.disabled = true;
+    } 
+    else if (step === 'subject') {
+        const subjectId = subjectEl.value;
+        if (!subjectId) { testEl.disabled = true; return; }
+        let filteredTests = tests.filter(t => t.subject_id === subjectId);
+        
+        testEl.innerHTML = '<option value="">-- टेस्ट चुनें --</option>' + filteredTests.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+        testEl.disabled = false;
+    }
+}
+
+function uploadBulkJSONQuestions() {
+    const targetTestId = document.getElementById('bq-test').value;
+    const jsonText = document.getElementById('bq-json-textarea').value.trim();
+
+    if (!targetTestId) { return alert("कृपया पहले 'टारगेट टेस्ट' चुनें!"); }
+    if (!jsonText) { return alert("JSON टेक्स्ट एरिया खाली है!"); }
+
+    try {
+        let arr = JSON.parse(jsonText);
+        if (!Array.isArray(arr)) { return alert("JSON डेटा एक ऐरे फॉर्मेट [ ... ] में होना चाहिए!"); }
+        
+        let count = 0;
+        arr.forEach(item => {
+            if (item.question_text && item.option_a && item.option_b && item.correct_option) {
+                questions.push({
+                    id: "q_b_" + Math.random().toString(36).substr(2, 4) + "_" + Date.now(),
+                    test_id: targetTestId,
+                    question_text: item.question_text,
+                    option_a: item.option_a,
+                    option_b: item.option_b,
+                    option_c: item.option_c || "",
+                    option_d: item.option_d || "",
+                    correct_option: item.correct_option,
+                    explanation: item.explanation || ""
+                });
+                count++;
+            }
+        });
+        alert(`बल्क अपलोड सफल! कुल ${count} प्रश्न जोड़ दिए गए हैं।`);
+        document.getElementById('bq-json-textarea').value = "";
+        renderAdminDash
