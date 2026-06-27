@@ -1,129 +1,201 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGTS - ऑनलाइन टेस्ट सी里ज़</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGTS - प्रीमियम ऑनलाइन टेस्ट सीरीज़</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-logo" onclick="showView('main-dashboard')"><i class="fa-solid fa-graduation-cap text-yellow"></i> CGTS</div>
-        <div id="nav-user-info"><button onclick="showView('login-page')" class="btn-primary-sm">लॉगिन / रजिस्ट्रेशन</button></div>
+        <div class="nav-logo" onclick="showView('main-dashboard')">
+            <i class="fa-solid fa-gem text-gradient"></i> CGTS <span class="pro-badge">PRO</span>
+        </div>
+        <div id="nav-user-info">
+            <button onclick="showView('login-page')" class="btn-premium-sm">लॉगिन / साइन-अप</button>
+        </div>
     </nav>
 
     <main class="container">
         <section id="main-dashboard" class="view-section active">
-            <div class="hero-text"><h1>CGTS ऑनलाइन टेस्ट सीरीज़</h1><p>सर्वश्रेष्ठ मॉक टेस्ट चुनें।</p></div>
+            <div class="hero-text">
+                <h1>CGTS <span class="text-gradient">ऑनलाइन टेस्ट सीरीज़</span></h1>
+                <p>अपनी तैयारी को दें एक प्रीमियम और डिजिटल उड़ान।</p>
+            </div>
             <div class="grid-2">
-                <div class="card card-free"><h2>फ्री कोर्स</h2><button onclick="loadCourses(false)" class="btn-action bg-green">कोर्स देखें</button></div>
-                <div class="card card-paid"><h2>पेड कोर्स</h2><button onclick="handlePaidAccess()" class="btn-action bg-amber">लॉगइन कर एक्सेस करें</button></div>
+                <div class="card card-premium-free">
+                    <div class="card-glow"></div>
+                    <h2>फ्री मॉक टेस्ट</h2>
+                    <p>बिना किसी शुल्क के बुनियादी विषयों के टेस्ट का अभ्यास करें।</p>
+                    <button onclick="loadCourses(false)" class="btn-premium bg-gradient-green">कोर्स देखें <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="card card-premium-paid">
+                    <div class="card-glow"></div>
+                    <h2>प्रीमियम एक्सेस</h2>
+                    <p>विशेषज्ञों द्वारा तैयार किए गए पेड मॉक टेस्ट और विस्तृत हल पाएं।</p>
+                    <button onclick="handlePaidAccess()" class="btn-premium bg-gradient-gold">एक्सेस अनलॉक करें <i class="fa-solid fa-lock-open"></i></button>
+                </div>
             </div>
         </section>
 
         <section id="login-page" class="view-section">
             <div class="auth-box">
                 <div class="auth-tabs">
-                    <button onclick="switchAuthTab('student-login')" class="tab-btn active">लॉगिन</button>
-                    <button onclick="switchAuthTab('student-reg')" class="tab-btn">रजिस्ट्रेशन</button>
-                    <button onclick="switchAuthTab('admin-login')" class="tab-btn">एडमिन</button>
+                    <button onclick="switchAuthTab('student-login')" id="btn-tab-l" class="tab-btn active">लॉगिन</button>
+                    <button onclick="switchAuthTab('student-reg')" id="btn-tab-r" class="tab-btn">रजिस्ट्रेशन</button>
+                    <button onclick="switchAuthTab('admin-login')" id="btn-tab-a" class="tab-btn">एडमिन</button>
                 </div>
                 <div class="auth-body">
                     <form id="form-student-login" onsubmit="authAction('login', event)">
-                        <div class="form-group"><label>मोबाइल</label><input type="tel" id="l-phone" required></div>
-                        <div class="form-group"><label>पासवर्ड</label><input type="password" id="l-pass" required></div>
-                        <button type="submit" class="btn-block bg-indigo">प्रवेश करें</button>
+                        <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="l-phone" placeholder="98765xxxxx" required></div>
+                        <div class="form-group"><label>पासवर्ड</label><input type="password" id="l-pass" placeholder="••••••••" required></div>
+                        <button type="submit" class="btn-premium bg-gradient-indigo">प्रवेश करें</button>
                     </form>
                     <form id="form-student-reg" onsubmit="authAction('reg', event)" class="hidden">
-                        <div class="form-group"><label>नाम</label><input type="text" id="r-name" required></div>
-                        <div class="form-group"><label>मोबाइल</label><input type="tel" id="r-phone" required></div>
-                        <div class="form-group"><label>पासवर्ड</label><input type="password" id="r-pass" required></div>
-                        <button type="submit" class="btn-block bg-green">रजिस्टर करें</button>
+                        <div class="form-group"><label>पूरा नाम</label><input type="text" id="r-name" placeholder="John Doe" required></div>
+                        <div class="form-group"><label>मोबाइल नंबर</label><input type="tel" id="r-phone" required></div>
+                        <div class="form-group"><label>पासवर्ड सेट करें</label><input type="password" id="r-pass" required></div>
+                        <button type="submit" class="btn-premium bg-gradient-green">पंजीकरण करें</button>
                     </form>
                     <form id="form-admin-login" onsubmit="authAction('admin', event)" class="hidden">
-                        <div class="form-group"><label>यूज़रनेम</label><input type="text" id="a-user" required></div>
+                        <div class="form-group"><label>एडमिन यूज़रनेम</label><input type="text" id="a-user" required></div>
                         <div class="form-group"><label>पासवर्ड</label><input type="password" id="a-pass" required></div>
-                        <button type="submit" class="btn-block bg-slate">कंसोल खोलें</button>
+                        <button type="submit" class="btn-premium bg-gradient-slate">कंसोल खोलें</button>
                     </form>
                 </div>
             </div>
         </section>
 
         <section id="listing-view" class="view-section">
-            <div class="back-nav"><button onclick="goBack()"><i class="fa-solid fa-arrow-left"></i> पीछे जाएं</button><span id="listing-title" class="bold-text" style="margin-left:10px;"></span></div>
+            <div class="back-nav"><button onclick="goBack()"><i class="fa-solid fa-chevron-left"></i> पीछे जाएं</button><h3 id="listing-title" class="text-gradient" style="margin-top:10px;"></h3></div>
             <div id="listing-grid" class="grid-3" style="margin-top:20px;"></div>
         </section>
 
         <section id="quiz-view" class="view-section">
-            <div class="quiz-box-container">
-                <div class="quiz-top-bar"><h2 id="qz-title" style="font-size:16px;">टेस्ट</h2><div class="timer-badge"><span id="qz-timer">00:00</span> | <span id="qz-p-timer">60s</span></div></div>
-                <div class="quiz-body">
-                    <p id="qz-num" style="font-weight:bold; color:#4f46e5;"></p>
-                    <p id="qz-text" style="margin:15px 0; font-weight:500;"></p>
-                    <div class="options-list">
-                        <button onclick="selectOpt('A')" id="o-A" class="quiz-opt-btn">A. <span id="ot-A"></span></button>
-                        <button onclick="selectOpt('B')" id="o-B" class="quiz-opt-btn">B. <span id="ot-B"></span></button>
-                        <button onclick="selectOpt('C')" id="o-C" class="quiz-opt-btn">C. <span id="ot-C"></span></button>
-                        <button onclick="selectOpt('D')" id="o-D" class="quiz-opt-btn">D. <span id="ot-D"></span></button>
+            <div class="quiz-box-container card">
+                <div class="quiz-top-bar">
+                    <h2 id="qz-title">टेस्ट इंजन</h2>
+                    <div class="timer-wrapper">
+                        <span class="badge-time"><i class="fa-solid fa-hourglass-start"></i> कुल समय: <span id="qz-timer">00:00</span></span>
+                        <span class="badge-time alert-time"><i class="fa-solid fa-clock"></i> प्रश्न शेष: <span id="qz-p-timer">60s</span></span>
                     </div>
-                    <div class="quiz-footer"><button onclick="quitTest()" class="btn-text-red">छोड़ें</button><button onclick="nextQ()" id="qz-next" class="btn-next bg-indigo">अगला</button></div>
+                </div>
+                <div class="quiz-body">
+                    <div id="qz-num" class="quiz-q-num"></div>
+                    <p id="qz-text" class="quiz-q-text"></p>
+                    <div class="options-list">
+                        <button onclick="selectOpt('A')" id="o-A" class="quiz-opt-btn"><span class="opt-index">A</span><span id="ot-A"></span></button>
+                        <button onclick="selectOpt('B')" id="o-B" class="quiz-opt-btn"><span class="opt-index">B</span><span id="ot-B"></span></button>
+                        <button onclick="selectOpt('C')" id="o-C" class="quiz-opt-btn"><span class="opt-index">C</span><span id="ot-C"></span></button>
+                        <button onclick="selectOpt('D')" id="o-D" class="quiz-opt-btn"><span class="opt-index">D</span><span id="ot-D"></span></button>
+                    </div>
+                    <div class="quiz-footer">
+                        <button onclick="quitTest()" class="btn-link-red">छोड़ें (Quit)</button>
+                        <button onclick="nextQ()" id="qz-next" class="btn-premium bg-gradient-indigo" style="width:150px; margin:0;">अगला</button>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section id="result-view" class="view-section">
-            <div class="result-summary-card"><h2>परिणाम: <span id="r-score">0</span></h2><button onclick="showView('main-dashboard')" class="btn-block bg-slate">डैशबोर्ड</button></div>
-            <div id="result-list" class="solutions-card solutions-divider" style="margin-top:15px;"></div>
+            <div class="result-summary-card card">
+                <div class="success-glow"></div>
+                <h2>आपका स्कोर: <span id="r-score" class="text-gradient">0</span></h2>
+                <p>टेस्ट सफलतापूर्वक सबमिट हो चुका है। नीचे विश्लेषण देखें।</p>
+                <button onclick="showView('main-dashboard')" class="btn-premium bg-gradient-slate" style="max-width:200px; margin:15px auto 0 auto;">डैशबोर्ड वापस जाएं</button>
+            </div>
+            <div id="result-list" class="solutions-card card" style="margin-top:25px;"></div>
         </section>
 
         <section id="admin-dashboard" class="view-section">
-            <div class="admin-top"><h2>CGTS कंसोल</h2><button onclick="logout()" class="btn-text-red">लॉगआऊट</button></div>
+            <div class="admin-top">
+                <h2><i class="fa-solid fa-sliders text-gradient"></i> CGTS कंट्रोल रूम</h2>
+                <button onclick="logout()" class="btn-link-red"><i class="fa-solid fa-power-off"></i> लॉगआऊट</button>
+            </div>
             <div class="admin-tab-nav">
-                <button id="tab-adm-users" onclick="switchAdminTab('users')" class="admin-tab-item active">छात्र</button>
-                <button id="tab-adm-content" onclick="switchAdminTab('content')" class="admin-tab-item">मैनेजमेंट uploader</button>
+                <button id="tab-adm-users" onclick="switchAdminTab('users')" class="admin-tab-item active">छात्र सूची</button>
+                <button id="tab-adm-content" onclick="switchAdminTab('content')" class="admin-tab-item">कंटेंट क्रिएटर & मैनेजमेंट</button>
             </div>
 
-            <div id="adm-users" class="admin-tab-body">
-                <div class="table-scroll"><table><thead><tr><th>नाम</th><th>मोबाइल</th><th>स्थिति</th><th>प्रीमियम</th></tr></thead><tbody id="tbl-users"></tbody></table></div>
+            <div id="adm-users" class="admin-tab-body card">
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>छात्र नाम</th><th>मोबाइल</th><th>अकाउंट स्थिति</th><th>प्रीमियम एक्सेस</th></tr></thead>
+                        <tbody id="tbl-users"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="adm-content" class="admin-tab-body hidden">
                 <div class="grid-admin-panel">
-                    <div class="admin-form-box">
-                        <h4>एक-एक करके प्रश्न जोड़ें</h4>
-                        <div class="form-group"><select id="mq-type" onchange="cascade('mq','type')"><option value="">-- प्रकार --</option><option value="free">FREE</option><option value="paid">PAID</option></select></div>
-                        <div class="form-group"><select id="mq-course" onchange="cascade('mq','course')" disabled></select></div>
-                        <div class="form-group"><select id="mq-subject" onchange="cascade('mq','subject')" disabled></select></div>
-                        <div class="form-group"><select id="mq-test" disabled></select></div>
-                        <div class="form-group"><textarea id="mq-txt" placeholder="प्रश्न text"></textarea></div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-                            <input type="text" id="mq-a" placeholder="A"><input type="text" id="mq-b" placeholder="B">
-                            <input type="text" id="mq-c" placeholder="C"><input type="text" id="mq-d" placeholder="D">
+                    
+                    <div class="admin-form-box card">
+                        <h4 class="text-gradient"><i class="fa-solid fa-folder-plus"></i> संरचना बनाएँ (Create Structure)</h4>
+                        <div class="form-group">
+                            <label>क्या बनाना चाहते हैं?</label>
+                            <select id="cr-level" onchange="updateCreatorUI()">
+                                <option value="course">नया कोर्स (New Course)</option>
+                                <option value="subject">नया विषय (New Subject)</option>
+                                <option value="test">नया टेस्ट (New Test)</option>
+                            </select>
                         </div>
-                        <div class="form-group" style="margin-top:5px;"><select id="mq-cor"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
-                        <div class="form-group"><textarea id="mq-exp" placeholder="व्याख्या"></textarea></div>
-                        <button onclick="addManualQ()" class="btn-block bg-indigo">सेव करें</button>
+                        
+                        <div id="cr-relation-block"></div>
+
+                        <div class="form-group">
+                            <label id="cr-label-title">कोर्स का नाम</label>
+                            <input type="text" id="cr-title" placeholder="यहाँ नाम दर्ज करें..." required>
+                        </div>
+                        <div class="form-group id="cr-paid-block">
+                            <label><input type="checkbox" id="cr-is-paid"> क्या यह पेड (Premium) कोर्स है?</label>
+                        </div>
+                        <button onclick="executeCreation()" class="btn-premium bg-gradient-indigo">नया आइटम लाइव जोड़ें</button>
                     </div>
                     
-                    <div class="admin-bulk-box">
-                        <h4>बल्क JSON अपलोडर</h4>
-                        <div class="form-group"><select id="bq-type" onchange="cascade('bq','type')"><option value="">-- प्रकार --</option><option value="free">FREE</option><option value="paid">PAID</option></select></div>
-                        <div class="form-group"><select id="bq-course" onchange="cascade('bq','course')" disabled></select></div>
-                        <div class="form-group"><select id="bq-subject" onchange="cascade('bq','subject')" disabled></select></div>
-                        <div class="form-group"><select id="bq-test" disabled></select></div>
-                        <div class="form-group"><textarea id="bq-json" rows="6" placeholder='[{"question_text":"Q","option_a":"A","option_b":"B","correct_option":"A"}]'></textarea></div>
-                        <button onclick="addBulkQ()" class="btn-block bg-amber">अपलोड करें</button>
+                    <div class="admin-bulk-box card">
+                        <h4 style="color:var(--warning);"><i class="fa-solid fa-bolt"></i> बल्क JSON अपलोडर (क्वेश्चन + टाइमर)</h4>
+                        <div class="form-group">
+                            <label>1. कोर्स चुनें</label>
+                            <select id="bq-course" onchange="cascade('bq','course')"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>2. विषय चुनें</label>
+                            <select id="bq-subject" onchange="cascade('bq','subject')" disabled></select>
+                        </div>
+                        <div class="form-group">
+                            <label>3. टेस्ट चुनें (Target Test)</label>
+                            <select id="bq-test" disabled></select>
+                        </div>
+                        <div class="form-group">
+                            <label>प्रश्नों का JSON पेस्ट करें (`time_limit` अनिवार्य है)</label>
+                            <textarea id="bq-json" rows="7" placeholder='[
+  {
+    "question_text": "भारत का राष्ट्रीय पशु क्या है?",
+    "option_a": "शेर", "option_b": "बाघ", "option_c": "चीता", "option_d": "हाथी",
+    "correct_option": "B",
+    "explanation": "बाघ (Tiger) भारत का राष्ट्रीय पशु है।",
+    "time_limit": 45
+  }
+]'></textarea>
+                        </div>
+                        <button onclick="addBulkQ()" class="btn-premium bg-gradient-gold">सभी प्रश्न इम्पोर्ट करें</button>
                     </div>
 
-                    <div class="admin-form-box" style="grid-column: 1/-1; border-top:3px solid red;">
-                        <h4>सामग्री प्रबंधन (View / Edit / Delete)</h4>
-                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:10px 0;">
+                    <div class="admin-form-box card" style="grid-column: 1/-1; border-top: 4px solid var(--primary);">
+                        <h4 class="text-gradient"><i class="fa-solid fa-layer-group"></i> लाइव सामग्री प्रबंधन (View / Edit / Delete)</h4>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin:15px 0;">
                             <select id="mg-course" onchange="loadManager('course')"></select>
                             <select id="mg-subject" onchange="loadManager('subject')"></select>
                             <select id="mg-test" onchange="loadManager('test')"></select>
                         </div>
-                        <div class="table-scroll"><table><thead><tr><th>सामग्री विवरण</th><th>एक्शन्स</th></tr></thead><tbody id="tbl-manager"></tbody></table></div>
+                        <div class="table-scroll">
+                            <table>
+                                <thead><tr><th>सामग्री नाम / विवरण</th><th style="text-align:center; width:180px;">एक्शन्स</th></tr></thead>
+                                <tbody id="tbl-manager"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -132,4 +204,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
